@@ -1,0 +1,7 @@
+[versions]
+junit = "4.13.2"
+
+[libraries]
+# > Required -- JUnit 4 framework
+# https://developer.android.com/training/testing/local-tests#dependencies
+junit = { group = "junit", name = "junit", version.ref = "junit" }
