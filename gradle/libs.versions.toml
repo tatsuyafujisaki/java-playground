@@ -1,7 +1,9 @@
 [versions]
+json = "+"
 junit = "4.13.2"
 
 [libraries]
+json = { group = "org.json", name = "json", version.ref = "json" }
 # > Required -- JUnit 4 framework
 # https://developer.android.com/training/testing/local-tests#dependencies
 junit = { group = "junit", name = "junit", version.ref = "junit" }
