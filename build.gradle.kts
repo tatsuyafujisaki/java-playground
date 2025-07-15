@@ -10,6 +10,7 @@ repositories {
 }
 
 dependencies {
+    implementation(libs.gson)
     implementation(libs.json)
     testImplementation(libs.junit)
 }
