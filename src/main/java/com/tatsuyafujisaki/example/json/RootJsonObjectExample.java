@@ -1,12 +1,11 @@
 package com.tatsuyafujisaki.example.json;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 class RootJsonObjectExample {
     public static void main(String[] args) {
-        String jsonString = """
+        var jsonString = """
                 {
                     "myRoot": [
                         {
@@ -29,27 +28,27 @@ class RootJsonObjectExample {
                 """;
 
         try {
-            JSONObject rootJsonObject = createJsonObjectOrNull(jsonString);
+            var rootJsonObject = createJsonObjectOrNull(jsonString);
             if (rootJsonObject == null) {
                 return;
             }
 
-            JSONArray jsonArray = rootJsonObject.optJSONArray("myRoot");
+            var jsonArray = rootJsonObject.optJSONArray("myRoot");
             if (jsonArray == null) {
                 return;
             }
 
             for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject jsonObject = jsonArray.optJSONObject(i);
+                var jsonObject = jsonArray.optJSONObject(i);
                 if (jsonObject == null) {
                     continue;
                 }
 
-                JSONArray myArray = jsonObject.optJSONArray("myArray");
-                Boolean myBool = jsonObject.optBooleanObject("myBool", null);
-                Double myDouble = jsonObject.optDoubleObject("myDouble", null);
-                Integer myInt = jsonObject.optIntegerObject("myInt", null);
-                String myString = jsonObject.optString("myString", null);
+                var myArray = jsonObject.optJSONArray("myArray");
+                var myBool = jsonObject.optBooleanObject("myBool", null);
+                var myDouble = jsonObject.optDoubleObject("myDouble", null);
+                var myInt = jsonObject.optIntegerObject("myInt", null);
+                var myString = jsonObject.optString("myString", null);
 
                 System.out.println("myArray: " + myArray);
                 System.out.println("myBool: " + myBool);
