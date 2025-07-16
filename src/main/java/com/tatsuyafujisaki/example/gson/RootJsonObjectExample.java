@@ -1,6 +1,6 @@
 package com.tatsuyafujisaki.example.gson;
 
-import com.google.gson.GsonBuilder;
+import com.google.gson.Gson;
 
 import java.util.List;
 
@@ -9,15 +9,6 @@ class MyRootObject {
 
     public List<MyData> getMyRoot() {
         return myRoot;
-    }
-
-    public void setMyRoot(List<MyData> myRoot) {
-        this.myRoot = myRoot;
-    }
-
-    @Override
-    public String toString() {
-        return "RootObject{myRoot=" + myRoot + "}";
     }
 }
 
@@ -45,19 +36,16 @@ public class RootJsonObjectExample {
                 }
                 """;
 
-        var gson = new GsonBuilder()
-                .setPrettyPrinting()
-                .create();
-
+        var gson = new Gson();
+        
         try {
             var rootObject = gson.fromJson(jsonString, MyRootObject.class);
-            System.out.println(rootObject);
+            System.out.println(gson.toJson(rootObject));
             System.out.println("--");
             for (var data : rootObject.getMyRoot()) {
-                System.out.println(data);
+                System.out.println(gson.toJson(data));
                 System.out.println("--");
             }
-            System.out.println(gson.toJson(rootObject));
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
