@@ -9,31 +9,33 @@ import java.util.function.Consumer;
 public class CallableToCompletableFutureExample {
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         fetchDataOrErrorAsync()
-                .whenComplete((data, throwable) -> System.out.println(throwable != null ? throwable.getMessage() : data));
+                .whenComplete((data, throwable) -> {
+                            if (throwable == null) {
+                                System.out.println(data);
+                            } else {
+                                System.err.println(throwable.getMessage());
+                            }
+                        }
+                );
     }
 
     public static CompletableFuture<String> fetchDataOrErrorAsync() {
-        CompletableFuture<String> future = new CompletableFuture<>();
-
-        fetchDataOrError(
-                future::complete,
-                future::completeExceptionally
-        );
-
+        var future = new CompletableFuture<String>();
+        fetchDataOrError(future::complete, future::completeExceptionally);
         return future;
     }
 
     private static void fetchDataOrError(Consumer<String> onSuccess, Consumer<Exception> onError) {
         try {
             Thread.sleep(100);
-            maybeThrowException();
+            mayThrowException();
             onSuccess.accept("🍎");
         } catch (Exception e) {
             onError.accept(e);
         }
     }
 
-    private static void maybeThrowException() throws RuntimeException {
+    private static void mayThrowException() throws RuntimeException {
         if (new Random().nextBoolean()) {
             throw new RuntimeException("💀");
         }
