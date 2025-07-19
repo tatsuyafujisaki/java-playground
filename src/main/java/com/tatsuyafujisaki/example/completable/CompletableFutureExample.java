@@ -4,44 +4,72 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+/// [CompletableFuture](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/concurrent/CompletableFuture.html)
 public class CompletableFutureExample {
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        example1();
+        voidCompletableFutureExample();
         System.out.println("--");
 
-        example2();
+        nonVoidCompletableFutureExample();
+        System.out.println("--");
+
+        exceptionallyExample();
+        System.out.println("--");
+
+        exceptionallyComposeExample();
         System.out.println("--");
     }
 
-    static void example1() throws ExecutionException, InterruptedException {
-        var future1 = CompletableFuture.supplyAsync(() -> {
-            sleep(Duration.ofSeconds(1));
-            return "🍎";
+    private static void voidCompletableFutureExample() {
+        System.out.println(Thread.currentThread().getStackTrace()[1].getMethodName());
+        var future = createCompletableFuture("🍎")
+                .thenRun(() -> printKeyValue("thenRun", null))
+                .handle((result, throwable) -> formatKeyValue("handle", (throwable != null ? throwable.getMessage() : null)))
+                .whenComplete((result, throwable) -> printKeyValue("whenComplete", (throwable != null ? throwable.getMessage() : result)));
+        printKeyValue("join", future.join());
+    }
+
+    private static void nonVoidCompletableFutureExample() {
+        System.out.println(Thread.currentThread().getStackTrace()[1].getMethodName());
+        var future = createCompletableFuture("🍎")
+                .thenApply(s -> formatKeyValue("thenApply", s))
+                .thenCombine(createCompletableFuture("🍊"), (s1, s2) -> formatKeyValue("thenCombine", s1 + s2))
+                .thenCompose(s -> CompletableFuture.supplyAsync(() -> formatKeyValue("thenCompose", s)))
+                .handle((result, throwable) -> formatKeyValue("handle", throwable != null ? throwable.getMessage() : result))
+                .whenComplete((result, throwable) -> printKeyValue("whenComplete", throwable != null ? throwable.getMessage() : result));
+        printKeyValue("join", future.join());
+    }
+
+    private static void exceptionallyExample() throws ExecutionException, InterruptedException {
+        System.out.println(Thread.currentThread().getStackTrace()[1].getMethodName());
+        var future = createCompletableFutureThrowingException()
+                .exceptionally(throwable -> formatKeyValue("exceptionally", throwable.getMessage()))
+                .handle((result, throwable) -> formatKeyValue("handle", throwable != null ? throwable.getMessage() : result))
+                .whenComplete((result, throwable) -> printKeyValue("whenComplete", throwable != null ? throwable.getMessage() : result));
+        printKeyValue("join", future.join());
+    }
+
+    private static void exceptionallyComposeExample() {
+        System.out.println(Thread.currentThread().getStackTrace()[1].getMethodName());
+        var future = createCompletableFutureThrowingException()
+                .exceptionallyCompose(throwable -> CompletableFuture.supplyAsync(() -> formatKeyValue("exceptionallyCompose", throwable.getMessage())))
+                .handle((result, throwable) -> formatKeyValue("handle", throwable == null ? result : throwable.getMessage()))
+                .whenComplete((result, throwable) -> printKeyValue("whenComplete", throwable != null ? throwable.getMessage() : result));
+        printKeyValue("join", future.join());
+    }
+
+    private static CompletableFuture<String> createCompletableFuture(String s) {
+        return CompletableFuture.supplyAsync(() -> {
+            sleep(Duration.ofMillis(100));
+            return s;
         });
-        var future2 = CompletableFuture
-                .supplyAsync(() -> "🍏")
-                .thenApply(s -> s + "🍊")
-                .thenCombine(future1, (s1, s2) -> s1 + s2)
-                .thenCompose(s -> CompletableFuture.supplyAsync(() -> s + "🍇"));
-        System.out.println(future2.isDone());
-        System.out.println(future2.get());
     }
 
-    static void example2() throws ExecutionException, InterruptedException {
-        var future = CompletableFuture
-                .supplyAsync(() -> {
-                            sleep(Duration.ofSeconds(1));
-                            if (Math.random() > 0.5) {
-                                throw new RuntimeException("💀");
-                            }
-                            return "🍎";
-                        }
-                ).exceptionally(throwable -> throwable.getMessage() + "💦")
-                .handle((result, throwable) -> (throwable == null) ? result : throwable.getMessage());
-        System.out.println(future.isDone());
-        System.out.println(future.get());
-        System.out.println(future.complete("a"));
-
+    private static CompletableFuture<String> createCompletableFutureThrowingException() {
+        return CompletableFuture.supplyAsync(() -> {
+            sleep(Duration.ofMillis(100));
+            throw new RuntimeException("💀");
+        });
     }
 
     private static void sleep(Duration duration) {
@@ -51,5 +79,13 @@ public class CompletableFutureExample {
             Thread.currentThread().interrupt();
             System.err.println(e.getMessage());
         }
+    }
+
+    private static void printKeyValue(String key, String value) {
+        System.out.println(formatKeyValue(key, value));
+    }
+
+    private static String formatKeyValue(String key, Object value) {
+        return "(" + key + ": " + value + ")";
     }
 }
