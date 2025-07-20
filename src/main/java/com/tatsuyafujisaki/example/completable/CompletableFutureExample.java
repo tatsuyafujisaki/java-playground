@@ -1,6 +1,5 @@
 package com.tatsuyafujisaki.example.completable;
 
-import java.time.Duration;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -14,47 +13,42 @@ public class CompletableFutureExample {
     }
 
     private static void example1() {
-        mockThirdPartyApi()
+        var methodName = Thread.currentThread().getStackTrace()[1].getMethodName();
+
+        try {
+            var data = wrapCallbackApi(CompletableFutureExample::callbackBasedApi).join();
+            System.out.println(methodName + " succeeded: " + data);
+        } catch (Exception e) {
+            System.err.println(methodName + " failed: " + e.getCause().getMessage());
+        }
+    }
+
+    private static void example2() {
+        var methodName = Thread.currentThread().getStackTrace()[1].getMethodName();
+
+        wrapCallbackApi(CompletableFutureExample::callbackBasedApi)
                 .whenComplete((data, throwable) -> {
                             if (throwable == null) {
-                                System.out.println(data);
+                                System.out.println(methodName + " succeeded: " + data);
                             } else {
-                                System.err.println(throwable.getMessage());
+                                System.err.println(methodName + " failed: " + throwable.getMessage());
                             }
                         }
                 );
     }
 
-    private static void example2() {
-        try {
-            System.out.println(mockThirdPartyApi().join());
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-        }
-    }
-
-    private static CompletableFuture<String> mockThirdPartyApi() {
-        var future = new CompletableFuture<String>();
-        mockThirdPartyCallbackApi(future::complete, future::completeExceptionally);
+    private static <T> CompletableFuture<T> wrapCallbackApi(CallbackBasedApi<T> operation) {
+        var future = new CompletableFuture<T>();
+        operation.execute(future::complete, future::completeExceptionally);
         return future;
     }
 
-    /// Mock third-party API that does not return a value, but rather takes callbacks and provides a success or failure value via one of them.
-    private static void mockThirdPartyCallbackApi(Consumer<String> onSuccess, Consumer<Exception> onError) {
+    private static void callbackBasedApi(Consumer<String> onSuccess, Consumer<Exception> onError) {
         try {
             mayThrowException();
             onSuccess.accept("🍎");
         } catch (Exception e) {
             onError.accept(e);
-        }
-    }
-
-    private static void sleep(Duration duration) {
-        try {
-            Thread.sleep(duration);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            System.err.println(e.getMessage());
         }
     }
 
